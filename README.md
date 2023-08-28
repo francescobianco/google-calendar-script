@@ -13,7 +13,7 @@ sudo git clone https://github.com/francescobianco/calendar-script /opt/calendar-
 Authorize the application to access your Google Calendar:
 
 ```shell
-/opt/calendar-script/calendar-script.sh --auth
+/usr/bin/bash /opt/calendar-script/calendar-script.sh --auth
 ```
 
 Add scheduled tasks to your crontab:
