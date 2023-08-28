@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
+sanitize() {
+  local text="$1"
+  local regex='[^[:alnum:][:space:][:punct:]]'
+  echo "$text" | LC_CTYPE=C sed -e "s/$regex//g"
+}
+
 today_agenda=~/.today_agenda
 today_agenda_alert=~/.today_agenda_alert
 
@@ -23,6 +29,7 @@ fi
 while read -r event; do
   notify=1
   event_time=$(date -d "$today $(cut -f2 <<< "$event")" +%s)
+  event_summary=$(cut -f5 <<< "$event")
   while read -r alert; do
     if [ "$event" = "$alert" ]; then
       notify=0
@@ -33,7 +40,8 @@ while read -r event; do
     continue
   fi
   if [ "$event_time" -le "$now" ]; then
-    echo "New event: $event"
+    linepush "$(sanitize "$event_summary")"
+    #one-thing "$event_summary"
     echo -e "$event" >> $today_agenda_alert
   fi
 done < "$today_agenda"
