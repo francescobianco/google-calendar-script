@@ -18,7 +18,7 @@ calendar_script() {
   ## Example: Push a notification to LINE chat (read more: <https://github.com/francescobianco/linepush>)
   linepush "$(sanitize_utf8 "$1")"
 
-  ## Example: Set OneThing message on disply (read more: <https://github.com/francescobianco/one-thing>)
+  ## Example: Set OneThing message on display (read more: <https://github.com/francescobianco/one-thing>)
   one-thing "$1"
 }
 
