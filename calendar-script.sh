@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
+## ======================================================================
+
+##
+# Customize this function to run your custom script on calendar events.
+##
+calendar_script() {
+
+  ## Example:
+  linepush "$(sanitize_utf8 "$event_summary")"
+
+  ## Example:
+  one-thing "$event_summary"
+}
+
+## ======================================================================
+
+##
+# Calendar Source Code.
+##
+
 sanitize_utf8() {
   local text="$1"
   local regex='[^[:alnum:][:space:][:punct:]]'
@@ -38,8 +58,7 @@ while read -r event; do
     continue
   fi
   if [ "$event_time" -le "$now" ]; then
-    linepush "$(sanitize_utf8 "$event_summary")"
-    one-thing "$event_summary"
+    calendar_script "$event_summary"
     echo -e "$event" >> $today_agenda_alert
   fi
 done < "$today_agenda"
