@@ -4,21 +4,28 @@ set -e
 ## ======================================================================
 
 ##
+# * * * * * * * *
+# *  IMPORTANT  *
+# * * * * * * * *
+#
 # Customize this function to run your custom script on calendar events.
+#
+# Arguments:
+#  - $1: The event summary.
 ##
 calendar_script() {
 
-  ## Example:
-  linepush "$(sanitize_utf8 "$event_summary")"
+  ## Example: Push a notification to LINE chat (read more: <https://github.com/francescobianco/linepush>)
+  linepush "$(sanitize_utf8 "$1")"
 
-  ## Example:
-  one-thing "$event_summary"
+  ## Example: Set OneThing message on disply (read more: <https://github.com/francescobianco/one-thing>)
+  one-thing "$1"
 }
 
 ## ======================================================================
 
 ##
-# Calendar Source Code.
+# Calendar Script - Source Code.
 ##
 
 sanitize_utf8() {
@@ -62,3 +69,5 @@ while read -r event; do
     echo -e "$event" >> $today_agenda_alert
   fi
 done < "$today_agenda"
+
+## ======================================================================
