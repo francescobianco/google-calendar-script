@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-sanitize() {
+sanitize_utf8() {
   local text="$1"
   local regex='[^[:alnum:][:space:][:punct:]]'
   echo "$text" | LC_CTYPE=C sed -e "s/$regex//g"
@@ -10,13 +10,11 @@ sanitize() {
 today_agenda=~/.today_agenda
 today_agenda_alert=~/.today_agenda_alert
 
-rm -f "$today_agenda_alert"
-
 [ ! -f "$today_agenda" ] && touch "$today_agenda"
 [ ! -f "$today_agenda_alert" ] && touch "$today_agenda_alert"
 
 now=$(date +%s)
-refresh_interval=10
+refresh_interval=10000
 post_update=$((now - refresh_interval))
 last_update=$(stat -c %Y "$today_agenda")
 today=$(date +%Y-%m-%d)
@@ -40,8 +38,8 @@ while read -r event; do
     continue
   fi
   if [ "$event_time" -le "$now" ]; then
-    linepush "$(sanitize "$event_summary")"
-    #one-thing "$event_summary"
+    linepush "$(sanitize_utf8 "$event_summary")"
+    one-thing "$event_summary"
     echo -e "$event" >> $today_agenda_alert
   fi
 done < "$today_agenda"
