@@ -23,5 +23,5 @@ crontab -e
 ```
 
 ```crontab
-* * * * * /usr/bin/bash /opt/calendar-script/calendar-script.sh  --cron 
+* * * * * /usr/bin/bash /opt/calendar-script/calendar-script.sh --cron 
 ```
