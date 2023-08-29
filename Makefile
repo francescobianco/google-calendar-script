@@ -15,3 +15,6 @@ test-auth:
 
 test-sync:
 	@bash calendar-script.sh --sync
+
+test-agenda:
+	@cat ~/.today_agenda
