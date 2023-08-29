@@ -16,6 +16,12 @@ Authorize the application to access your Google Calendar:
 /usr/bin/bash /opt/calendar-script/calendar-script.sh --auth
 ```
 
+Synchronize Google Calendar on you local machine:
+
+```shell
+/usr/bin/bash /opt/calendar-script/calendar-script.sh --sync
+```
+
 Add scheduled tasks to your crontab:
 
 ```shell

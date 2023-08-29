@@ -54,6 +54,9 @@ today_agenda_alert=~/.today_agenda_alert
 
 now=$(date +%s)
 refresh_interval=10000
+
+[ "$1" = "--sync" ] && refresh_interval=0
+
 post_update=$((now - refresh_interval))
 last_update=$(stat -c %Y "$today_agenda")
 today=$(date +%Y-%m-%d)
