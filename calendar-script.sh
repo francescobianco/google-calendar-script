@@ -35,7 +35,7 @@ sanitize_utf8() {
 }
 
 if ! command -v gcalcli &> /dev/null; then
-  echo "gcalcli is not installed, follow this link: <https://github.com/insanum/gcalcli>"
+  echo "$0: gcalcli is not installed, follow this link: <https://github.com/insanum/gcalcli>"
   exit 1
 fi
 
