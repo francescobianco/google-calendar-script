@@ -25,3 +25,11 @@ crontab -e
 ```crontab
 * * * * * /usr/bin/bash /opt/calendar-script/calendar-script.sh --cron 
 ```
+
+## Configuration
+
+Customize the function `calendar_script` in `calendar-script.sh` to execute your custom scripts.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
