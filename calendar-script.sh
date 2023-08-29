@@ -34,6 +34,18 @@ sanitize_utf8() {
   echo "$text" | LC_CTYPE=C sed -e "s/$regex//g"
 }
 
+if ! command -v gcalcli &> /dev/null; then
+  echo "gcalcli is not installed, follow this link: <https://github.com/insanum/gcalcli>"
+  exit 1
+fi
+
+if [ "$1" = "--auth" ]; then
+  read -r -p "Google Client Id: " client_id
+  read -r -p "Google Client Secret: " client_secret
+  gcalcli --client-id "${client_id}" --client-secret "${client_secret}" list
+  exit 0
+fi
+
 today_agenda=~/.today_agenda
 today_agenda_alert=~/.today_agenda_alert
 
