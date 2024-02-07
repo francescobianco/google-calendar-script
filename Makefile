@@ -11,7 +11,7 @@ test:
 	@bash calendar-script.sh
 
 test-auth:
-	@bash calendar-script.sh --auth
+	@bash tests/auth-test.sh
 
 test-sync:
 	@bash calendar-script.sh --sync

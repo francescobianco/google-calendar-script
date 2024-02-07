@@ -28,7 +28,10 @@ oauth_url+="&access_type=offline"
 echo "URL di autorizzazione: $oauth_url"
 porta=9000
 # Accetta la connessione e legge la richiesta HTTP
-request=$(echo -ne "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello, World!" | nc -l -p "$porta" | grep -oP 'GET /\K[^ ]+')
+
+response="HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello, World!"
+request=$(echo -ne "${response}" | nc -l -p "$porta" | sed -n 's/GET \([^ ]*\).*/\1/p')
+
 
 echo "Richiesta HTTP: $request"
 
