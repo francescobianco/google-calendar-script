@@ -1,5 +1,6 @@
 .idea/
 .vscode/
 tests/tmp/
+target/
 .env
 SECRET.md
