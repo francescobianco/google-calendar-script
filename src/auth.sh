@@ -63,7 +63,7 @@ google_calendar_script_get_access_token() {
   code=$(echo "${request}" | sed -n 's/.*\?code=\([^&]*\).*/\1/p')
 
   request="client_id=$client_id&client_secret=$client_secret&code=$code&redirect_uri=$redirect_uri&grant_type=authorization_code"
-  response=$(curl -s -d "${request}" https://oauth2.googleapis.com/token)
+  response=$(curl -s -d "${request}" "https://oauth2.googleapis.com/token")
 
   echo
   echo "Authorization complete. Access token saved to '${access_token_file}'"
