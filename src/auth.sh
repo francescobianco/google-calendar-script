@@ -18,7 +18,7 @@ google_calendar_script_auth() {
 
   echo "$expiring_time"
 
-  if [ "$expiring_time" -gt "10" ]; then
+  if [ "$expiring_time" -gt "1000" ]; then
     google_calendar_script_refresh_access_token "${access_token_file}" "${client_secret_file}"
   fi
 }
