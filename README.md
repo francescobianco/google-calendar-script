@@ -1,25 +1,19 @@
-# Calendar Scripts
+# Google Calendar Script
 
 Execute custom user scripts on calendar events.
 
 ## Installation
 
-Clone the repository in `/opt/calendar-script` and add the following line to your crontab:
+Clone the repository in `/opt/google-calendar-script` and add the following line to your crontab:
 
 ```shell
-sudo git clone https://github.com/francescobianco/calendar-script /opt/calendar-script
+sudo git clone https://github.com/francescobianco/google-calendar-script /opt/google-calendar-script
 ```
 
 Authorize the application to access your Google Calendar:
 
 ```shell
-/usr/bin/bash /opt/calendar-script/calendar-script.sh --auth
-```
-
-Synchronize Google Calendar on you local machine:
-
-```shell
-/usr/bin/bash /opt/calendar-script/calendar-script.sh --sync
+/usr/bin/bash /opt/google-calendar-script/bin/google-calendar-script.sh --auth
 ```
 
 Add scheduled tasks to your crontab:
@@ -29,8 +23,10 @@ crontab -e
 ```
 
 ```crontab
-* * * * * /usr/bin/bash /opt/calendar-script/calendar-script.sh --cron 
+* * * * * /usr/bin/bash /opt/google-calendar-script/bin/google-calendar-script.sh --cron 
 ```
+
+Create a file named `.google-calendar-script.sh` in `~/` with instructions to execute when a calendar event is triggered.
 
 ## Configuration
 
