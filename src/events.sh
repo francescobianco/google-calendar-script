@@ -11,9 +11,17 @@ google_calendar_script_events() {
 
   cache_file=$1
 
+  current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
-    cat "${cache_file}"
+    last_modified=$(stat -c %Y "${cache_file}")
   else
+    last_modified=0
+  fi
+  expiring_time=$((current_time - last_modified))
+
+  echo "E: $expiring_time $current_time $last_modified"
+
+  if [ "${expiring_time}" -gt "30" ]; then
     access_token_file=$2
     access_token=$(sed -n 's/.*"access_token": *"\(.*\)".*/\1/p' "${access_token_file}" | cut -d '"' -f 1)
 
@@ -26,22 +34,13 @@ google_calendar_script_events() {
         tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
     fi
 
-    echo "Today: $today"
-    echo "Tomorrow: $tomorrow"
+    calendar_ids=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList"  | jq -r '.items[].id')
     events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
 
-    calendar_ids=$(curl -s -X GET \
-        -H "Authorization: Bearer $access_token" \
-      "https://www.googleapis.com/calendar/v3/users/me/calendarList"  | jq -r '.items[].id')
-
-
-      for calendar_id in $calendar_ids; do
-          echo "ID: $calendar_id"
-              curl -s -X GET \
-                  -H "Authorization: Bearer $access_token" \
-                "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" | jq -r '.items[] | "EVENT '"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.summary)"' >> "${cache_file}"
-      done
+    for calendar_id in $calendar_ids; do
+      curl -s -X GET -H "Authorization: Bearer $access_token" \
+        "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" \
+          | jq -r '.items[] | "EVENT '"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.summary)"' >> "${cache_file}"
+    done
   fi
-
 }
-
