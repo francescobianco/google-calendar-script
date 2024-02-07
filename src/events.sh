@@ -11,11 +11,13 @@ google_calendar_script_events() {
 
   cache_file=$1
 
-  if [ -f cache_file ]; then
+  if [ -f "${cache_file}" ]; then
     cat "${cache_file}"
   else
     access_token_file=$2
     access_token=$(sed -n 's/.*"access_token": *"\(.*\)".*/\1/p' "${access_token_file}" | cut -d '"' -f 1)
+
+    echo "## Cache file of google-calendar-script" > "${cache_file}"
 
     today=$(date -u +"%Y-%m-%dT00:00:00Z")
     if [ "$(uname)" == "Darwin" ]; then
@@ -37,9 +39,8 @@ google_calendar_script_events() {
           echo "ID: $calendar_id"
               curl -s -X GET \
                   -H "Authorization: Bearer $access_token" \
-                "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" | jq -r '.items[] | "'"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.summary)"'
+                "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" | jq -r '.items[] | "EVENT '"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.summary)"' >> "${cache_file}"
       done
-
   fi
 
 }
