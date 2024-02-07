@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+echo "GOOGLE_CALENDAR_EVENT_ID: $GOOGLE_CALENDAR_EVENT_ID"
+
+

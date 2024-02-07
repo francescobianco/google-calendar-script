@@ -2,12 +2,14 @@
 google_calendar_script_events() {
   local cache_file
   local access_token_file
+  local script_file
   local current_time
   local last_modified
   local expiring_time
 
   cache_file=$1
   access_token_file=$2
+  script_file=$3
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
@@ -26,9 +28,13 @@ google_calendar_script_events() {
 
   #cat "${cache_file}"
 
-  while read -r line; do
+  cp "${cache_file}" "${cache_file}.1"
+  grep '^EVENT ' "${cache_file}.1" | while read -r line; do
     echo "Processing $line"
-  done < "${cache_file}"
+    google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
+  done
+
+  rm "${cache_file}.1"
 }
 
 google_calendar_script_refresh_events() {
@@ -46,7 +52,7 @@ google_calendar_script_refresh_events() {
   access_token_file=$2
   access_token=$(sed -n 's/.*"access_token": *"\(.*\)".*/\1/p' "${access_token_file}" | cut -d '"' -f 1)
 
-  grep '^EVENT' "${cache_file}" > "${cache_file}.events"
+  grep '^EVENT' "${cache_file}" > "${cache_file}.0"
 
   temp_file=$(mktemp)
   sed '/^EVENT/d' "${cache_file}" > "${temp_file}"
@@ -76,7 +82,7 @@ google_calendar_script_refresh_events() {
           | while read -r line; do
             event_id=$(echo "$line" | cut -d' ' -f2)
             event_data=$(echo "$line" | cut -d' ' -f3-)
-            event_state=$(grep "^EVENT $event_id" "${cache_file}.events" | cut -d' ' -f3)
+            event_state=$(grep "^EVENT $event_id" "${cache_file}.0" | cut -d' ' -f3)
             echo "EVENT ${event_id} ${event_state:-UNKNOWN} ${event_data}" >> "${cache_file}"
           done
     done
@@ -87,5 +93,57 @@ google_calendar_script_refresh_events() {
 
 
 
-  rm -f "${cache_file}.events"
+  rm -f "${cache_file}.0"
+}
+
+google_calendar_script_parse_event() {
+  local cache_file
+  local script_file
+  local event
+  local event_id
+  local event_state
+  local event_data
+  local event_start
+  local event_end
+  local event_reminder_1
+  local event_reminder_2
+  local event_summary
+
+  cache_file=$1
+  script_file=$2
+  event=$3
+
+  event_id=$(echo "$event" | cut -d' ' -f2)
+  event_state=$(echo "$event" | cut -d' ' -f3)
+  event_data=$(echo "$event" | cut -d' ' -f4-)
+  event_start=$(echo "$event_data" | cut -d' ' -f1)
+  event_end=$(echo "$event_data" | cut -d' ' -f2)
+  event_reminder_1=$(echo "$event_data" | cut -d' ' -f3)
+  event_reminder_2=$(echo "$event_data" | cut -d' ' -f4)
+  event_summary=$(echo "$event_data" | cut -d' ' -f5-)
+
+
+  update_state=${event_state}
+  current_time=$(date +%s)
+  end_time=$(date -d "$event_end" +"%s")
+
+  echo "END $current_time $end_time"
+
+  if [ "$current_time" -gt "$end_time" ]; then
+    update_state="ENDED"
+  fi
+
+  if [ "$update_state" != "$event_state" ]; then
+    echo "Updating state of $event_id from $event_state to $update_state"
+    temp_file="$(mktemp)"
+    sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
+    mv "${temp_file}" "${cache_file}"
+
+    export GOOGLE_CALENDAR_EVENT_ID=$event_id
+    /bin/bash "${script_file}"
+  fi
+
+  exit
+
+  echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
 }
