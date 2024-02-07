@@ -13,6 +13,9 @@ test:
 test-auth:
 	@bash tests/auth-test.sh
 
+test-events:
+	@bash tests/events-test.sh
+
 test-sync:
 	@bash calendar-script.sh --sync
 
