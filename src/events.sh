@@ -143,7 +143,6 @@ google_calendar_script_parse_event() {
     /bin/bash "${script_file}"
   fi
 
-  exit
 
-  echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
+  #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
 }
