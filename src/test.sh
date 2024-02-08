@@ -7,7 +7,7 @@ google_calendar_script_test() {
   event_state=${1:-STARTED}
   script_file=${2:-"${HOME}/.google/calendar-script.sh"}
 
-  echo "Testing event on state ${event_state}"
+  echo "Testing '${event_state}' state on fake event"
   test_db_file=$(mktemp)
   case $event_state in
     STARTED)
@@ -23,7 +23,7 @@ google_calendar_script_test() {
       exit 1
       ;;
   esac
-  echo "EVENT ID UNKNOWN CALENDAR $event_start $event_end 5 10 Test Event" > "${test_db_file}"
+  echo "EVENT ID UNKNOWN CALENDAR $event_start $event_end 5 10 Fake Calendar Event" > "${test_db_file}"
   google_calendar_script_events "${test_db_file}" "${script_file}"
   rm -f "${test_db_file}"
 }
