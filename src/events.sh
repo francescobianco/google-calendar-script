@@ -8,8 +8,8 @@ google_calendar_script_events() {
   local expiring_time
 
   cache_file=$1
-  access_token_file=$2
-  script_file=$3
+  script_file=$2
+  access_token_file=$3
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
@@ -61,9 +61,9 @@ google_calendar_script_refresh_events() {
 
   today=$(date -u +"%Y-%m-%dT00:00:00Z")
   if [ "$(uname)" == "Darwin" ]; then
-      tomorrow=$(date -u -j -v+1d -f "%Y-%m-%dT%H:%M:%SZ" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "+%Y-%m-%dT00:00:00Z")
+    tomorrow=$(date -u -j -v+1d -f "%Y-%m-%dT%H:%M:%SZ" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "+%Y-%m-%dT00:00:00Z")
   else
-      tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
+    tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
   fi
 
   events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
@@ -76,18 +76,20 @@ google_calendar_script_refresh_events() {
       default_reminder_1=$(echo "$calendar" | cut -d' ' -f2)
       default_reminder_2=$(echo "$calendar" | cut -d' ' -f3)
 
-      echo "Found calendar $calendar_id"
+      #echo "Found calendar $calendar_id"
 
-      curl -s -X GET -H "Authorization: Bearer $access_token" \
-        "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" \
-          | jq -r '.items[] | "EVENT \(.id) '"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.reminders.overrides[0].minutes//'"${default_reminder_1}"') \(.reminders.overrides[1].minutes//'"${default_reminder_2}"') \(.summary)"' \
-          | while read -r line; do
+      calendar_events=$(curl -s -X GET -H "Authorization: Bearer $access_token" \
+          "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query")
+
+      echo "$calendar_events" \
+        | jq -r '.items[] | "EVENT \(.id) '"$calendar_id"' \(.start.dateTime) \(.end.dateTime) \(.reminders.overrides[0].minutes//'"${default_reminder_1}"') \(.reminders.overrides[1].minutes//'"${default_reminder_2}"') \(.summary)"' \
+        | while read -r line; do
             event_id=$(echo "$line" | cut -d' ' -f2)
             event_data=$(echo "$line" | cut -d' ' -f3-)
             event_state=$(grep "^EVENT $event_id" "${cache_file}.0" | cut -d' ' -f3)
             echo "EVENT ${event_id} ${event_state:-UNKNOWN} ${event_data}" >> "${cache_file}"
           done
-    done
+      done
 
   rm -f "${cache_file}.0"
 }
@@ -123,14 +125,14 @@ google_calendar_script_parse_event() {
   current_time=$(date +%s)
   end_time=$(date -d "$event_end" +"%s")
 
-  echo "END $current_time $end_time"
+  #echo "END $current_time $end_time"
 
   if [ "$current_time" -gt "$end_time" ]; then
     update_state="ENDED"
   fi
 
   if [ "$update_state" != "$event_state" ]; then
-    echo "Updating state of $event_id from $event_state to $update_state"
+    #echo "Updating state of $event_id from $event_state to $update_state"
     temp_file="$(mktemp)"
     sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
     mv "${temp_file}" "${cache_file}"
@@ -138,7 +140,6 @@ google_calendar_script_parse_event() {
     export GOOGLE_CALENDAR_EVENT_ID=$event_id
     /bin/bash "${script_file}"
   fi
-
 
   #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
 }

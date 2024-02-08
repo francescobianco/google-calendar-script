@@ -11,6 +11,7 @@ main() {
   local command
   local access_token_file
   local client_secret_file
+  local event_state
 
   command=$1
   access_token_file="${HOME}/.google/access_token.json"
@@ -23,13 +24,24 @@ main() {
       usage
       ;;
     --cron)
-      google_calendar_script_events "${db_file}" "${access_token_file}" "${script_file}"
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
       ;;
     --sync)
-      google_calendar_script_events "${db_file}" "${access_token_file}" "${script_file}"
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
       ;;
     --auth)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      ;;
+    --test)
+      event_state=$2
+      echo "Testing event on state ${event_state}"
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
+      ;;
+    --edit)
+      nano "${script_file}"
       ;;
     --info)
       echo "==> Database: '${db_file}'"
