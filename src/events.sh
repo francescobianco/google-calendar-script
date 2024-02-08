@@ -31,7 +31,7 @@ google_calendar_script_events() {
 
   cp "${cache_file}" "${cache_file}.1"
   grep '^EVENT ' "${cache_file}.1" | while read -r line; do
-    echo "Processing $line"
+    echo "Processing: $line"
     google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
   done
 
@@ -109,25 +109,32 @@ google_calendar_script_parse_event() {
 
   event_id=$(echo "$event" | cut -d' ' -f2)
   event_state=$(echo "$event" | cut -d' ' -f3)
-  event_data=$(echo "$event" | cut -d' ' -f4-)
-  event_start=$(echo "$event_data" | cut -d' ' -f1)
-  event_end=$(echo "$event_data" | cut -d' ' -f2)
-  event_reminder_1=$(echo "$event_data" | cut -d' ' -f3)
-  event_reminder_2=$(echo "$event_data" | cut -d' ' -f4)
-  event_summary=$(echo "$event_data" | cut -d' ' -f5-)
+  event_start=$(echo "$event" | cut -d' ' -f5)
+  event_end=$(echo "$event" | cut -d' ' -f6)
+  event_reminder_1=$(echo "$event" | cut -d' ' -f7)
+  event_reminder_2=$(echo "$event" | cut -d' ' -f8)
+  event_summary=$(echo "$event" | cut -d' ' -f9-)
+
+  echo "Processing ID=$event_id STATE=$event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
 
   update_state=${event_state}
   current_time=$(date +%s)
+  start_time=$(date -d "$event_start" +"%s")
   end_time=$(date -d "$event_end" +"%s")
 
   #echo "END $current_time $end_time"
+  echo "START $current_time $start_time"
+
+  if [ "$current_time" -gt "$start_time" ]; then
+    update_state="STARTED"
+  fi
 
   if [ "$current_time" -gt "$end_time" ]; then
     update_state="ENDED"
   fi
 
   if [ "$update_state" != "$event_state" ]; then
-    #echo "Updating state of $event_id from $event_state to $update_state"
+    echo "Updating state of $event_id from $event_state to $update_state"
     temp_file="$(mktemp)"
     sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
     mv "${temp_file}" "${cache_file}"

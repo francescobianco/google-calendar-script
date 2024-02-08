@@ -23,7 +23,7 @@ google_calendar_script_test() {
       exit 1
       ;;
   esac
-  echo "EVENT ID STATE CALENDAR $event_start $event_end 5 10 Test Event" > "${test_db_file}"
+  echo "EVENT ID UNKNOWN CALENDAR $event_start $event_end 5 10 Test Event" > "${test_db_file}"
   google_calendar_script_events "${test_db_file}" "${script_file}"
   rm -f "${test_db_file}"
 }
