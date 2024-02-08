@@ -34,12 +34,6 @@ main() {
     --auth)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
       ;;
-    --test)
-      event_state=$2
-      echo "Testing event on state ${event_state}"
-      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
-      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
-      ;;
     --edit)
       nano "${script_file}"
       ;;
@@ -51,6 +45,31 @@ main() {
       echo "==[SCRIPT: '${script_file}']=="
       sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' "${script_file}"
       echo "==[END]=="
+      ;;
+    --test)
+      event_state=${2:-STARTED}
+      echo "Testing event on state ${event_state}"
+      test_db_file=$(mktemp)
+      case $event_state in
+        STARTED)
+          event_start=2020-01-01T00:00:00Z
+          event_end=2020-01-01T01:00:00Z
+          ;;
+        FINISHED)
+          event_start=2020-01-01T00:00:00Z
+          event_end=2020-01-01T01:00:00Z
+          ;;
+        *)
+          echo "Invalid state"
+          exit 1
+          ;;
+      esac
+      echo "EVENT ID STATE CALENDAR $event_start $event_end 5 10 Test Event" > "${test_db_file}"
+      google_calendar_script_events "${test_db_file}" "${script_file}"
+      rm -f "${test_db_file}"
+      ;;
+    *)
+      usage
       ;;
   esac
 }
