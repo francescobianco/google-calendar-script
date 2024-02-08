@@ -31,5 +31,10 @@ main() {
     --auth)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
       ;;
+    --info)
+      echo "==> Database: '${db_file}'"
+      cat "${db_file}"
+      echo "---"
+      ;;
   esac
 }

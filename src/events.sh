@@ -23,6 +23,7 @@ google_calendar_script_events() {
   echo "E: $expiring_time $current_time $last_modified"
 
   if [ "${expiring_time}" -gt "5" ]; then
+    echo "Refreshing events..."
     google_calendar_script_refresh_events "${cache_file}" "${access_token_file}"
   fi
 
@@ -52,7 +53,7 @@ google_calendar_script_refresh_events() {
   access_token_file=$2
   access_token=$(sed -n 's/.*"access_token": *"\(.*\)".*/\1/p' "${access_token_file}" | cut -d '"' -f 1)
 
-  grep '^EVENT' "${cache_file}" > "${cache_file}.0"
+  grep '^EVENT' "${cache_file}" > "${cache_file}.0" && true
 
   temp_file=$(mktemp)
   sed '/^EVENT/d' "${cache_file}" > "${temp_file}"
@@ -65,16 +66,17 @@ google_calendar_script_refresh_events() {
       tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
   fi
 
-
   events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
+  calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
 
-  curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList" \
+   echo "$calendar_list" \
     | jq -r '.items[] | "\(.id) \(.defaultReminders[0].minutes//0) \(.defaultReminders[1].minutes//0)"' \
     | while read -r calendar; do
       calendar_id=$(echo "$calendar" | cut -d' ' -f1)
       default_reminder_1=$(echo "$calendar" | cut -d' ' -f2)
       default_reminder_2=$(echo "$calendar" | cut -d' ' -f3)
 
+      echo "Found calendar $calendar_id"
 
       curl -s -X GET -H "Authorization: Bearer $access_token" \
         "https://www.googleapis.com/calendar/v3/calendars/$calendar_id/events?$events_query" \
