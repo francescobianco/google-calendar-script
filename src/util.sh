@@ -19,7 +19,7 @@ google_calendar_script_date() {
 google_calendar_script_date_timestamp() {
   local date
 
-  date=%1
+  date=$1
 
   if [ "$(uname)" == "Darwin" ]; then
     date -j -f "%Y-%m-%d %H:%M:%S" "$date" +"%s"

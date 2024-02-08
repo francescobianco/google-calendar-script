@@ -121,8 +121,10 @@ google_calendar_script_parse_event() {
 
     update_state=${event_state}
     current_time=$(date +%s)
+    echo "S: $event_start E: $event_end"
     start_time=$(google_calendar_script_date_timestamp "$event_start")
-    end_time=$(google_calendar_script_date_timestamp "$event_end")
+    exit
+    #end_time=$(google_calendar_script_date_timestamp "$event_end")
 
     #echo "END $current_time $end_time"
     #echo "START $current_time $start_time"
