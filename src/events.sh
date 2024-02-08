@@ -137,12 +137,15 @@ google_calendar_script_parse_event() {
 
     if [ "$update_state" != "$event_state" ]; then
       echo "Updating state of $event_id from $event_state to $update_state"
+
       temp_file="$(mktemp)"
       sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
       mv "${temp_file}" "${cache_file}"
 
-      export GOOGLE_CALENDAR_EVENT_ID=$event_id
-      /bin/bash "${script_file}"
+      export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
+      export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
+      export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
+      /bin/bash -x "${script_file}"
     fi
 
     #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
