@@ -20,7 +20,7 @@ google_calendar_script_events() {
   fi
   expiring_time=$((current_time - last_modified))
 
-  echo "E: $expiring_time $current_time $last_modified"
+  #echo "E: $expiring_time $current_time $last_modified"
 
   if [ "${expiring_time}" -gt "5" ]; then
     echo "Refreshing events..."
