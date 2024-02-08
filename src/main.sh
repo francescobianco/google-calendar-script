@@ -1,8 +1,8 @@
 
 module auth
 module events
-module date
 module test
+module util
 
 usage() {
   echo "Usage: google-calendar-script --sync"

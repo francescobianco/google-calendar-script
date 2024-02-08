@@ -13,7 +13,7 @@ google_calendar_script_events() {
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
-    last_modified=$(stat -c %Y "${cache_file}")
+    last_modified=$(google_calendar_script_last_modified "${cache_file}")
   else
     last_modified=0
     echo "## Cache file of google-calendar-script" > "${cache_file}"
@@ -59,10 +59,10 @@ google_calendar_script_refresh_events() {
   sed '/^EVENT/d' "${cache_file}" > "${temp_file}"
   mv "${temp_file}" "${cache_file}"
 
-  today=$(google_calendar_today)
-  tomorrow=$(google_calendar_today "+1 day")
+  time_min=$(google_calendar_script_date "-12 hours")
+  time_max=$(google_calendar_script_date "+12 hours")
 
-  events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
+  events_query="timeMin=$time_min&timeMax=$time_max&singleEvents=true&orderBy=startTime"
   calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
 
    echo "$calendar_list" \

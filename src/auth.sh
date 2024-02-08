@@ -12,7 +12,7 @@ google_calendar_script_auth() {
     google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
   fi
 
-  last_modified=$(stat -c %Y "${access_token_file}")
+  last_modified=$(google_calendar_script_last_modified "${access_token_file}")
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
 
