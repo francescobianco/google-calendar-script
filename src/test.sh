@@ -9,6 +9,10 @@ google_calendar_script_test() {
   test_db_file=$(mktemp)
 
   case $event_state in
+    PENDING)
+      event_start=$(google_calendar_script_date "+1 hour")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
     STARTED)
       event_start=$(google_calendar_script_date "-5 minutes")
       event_end=$(google_calendar_script_date "+1 hour")

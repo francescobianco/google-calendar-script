@@ -127,6 +127,10 @@ google_calendar_script_parse_event() {
     #echo "END $current_time $end_time"
     #echo "START $current_time $start_time"
 
+    if [ "$current_time" -lt "$start_time" ]; then
+      update_state="PENDING"
+    fi
+
     if [ "$current_time" -gt "$start_time" ]; then
       update_state="STARTED"
     fi
@@ -142,10 +146,18 @@ google_calendar_script_parse_event() {
       sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
       mv "${temp_file}" "${cache_file}"
 
-      export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
-      export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
-      export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
-      /bin/bash -x "${script_file}"
+      if [ "${update_state}" != "PENDING" ]; then
+        export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
+        export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
+        export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
+        export GOOGLE_CALENDAR_EVENT_START="${event_start}"
+        export GOOGLE_CALENDAR_EVENT_END="${event_end}"
+        export GOOGLE_CALENDAR_EVENT_REMINDER_1="${event_reminder_1}"
+        export GOOGLE_CALENDAR_EVENT_REMINDER_2="${event_reminder_2}"
+        /bin/bash -x "${script_file}"
+      else
+        echo "Skipping event, it is still pending."
+      fi
     fi
 
     #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
