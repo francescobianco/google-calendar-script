@@ -13,7 +13,7 @@ google_calendar_script_events() {
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
-    last_modified=$(google_calendar_script_last_modified "${cache_file}")
+    last_modified=$(google_calendar_script_file_timestamp "${cache_file}")
   else
     last_modified=0
     echo "## Cache file of google-calendar-script" > "${cache_file}"
@@ -121,8 +121,8 @@ google_calendar_script_parse_event() {
 
     update_state=${event_state}
     current_time=$(date +%s)
-    start_time=$(date -d "$event_start" +"%s")
-    end_time=$(date -d "$event_end" +"%s")
+    start_time=$(google_calendar_script_date_timestamp "$event_start")
+    end_time=$(google_calendar_script_date_timestamp "$event_end")
 
     #echo "END $current_time $end_time"
     #echo "START $current_time $start_time"

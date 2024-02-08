@@ -16,7 +16,7 @@ google_calendar_script_date() {
   fi
 }
 
-google_calendar_script_timestamp() {
+google_calendar_script_date_timestamp() {
   local date
 
   date=%1
@@ -28,7 +28,7 @@ google_calendar_script_timestamp() {
   fi
 }
 
-google_calendar_script_last_modified() {
+google_calendar_script_file_timestamp() {
   local file
 
   file=$1
