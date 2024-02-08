@@ -2,13 +2,34 @@
 module auth
 module events
 
-main() {
-  [ "$1" = "--sync" ] && refresh_interval=0
+usage() {
+  echo "Usage: google-calendar-script --sync"
+  echo "       google-calendar-script --auth"
+}
 
-  if [ "$1" = "--auth" ]; then
-    read -r -p "Google Client Id: " client_id
-    read -r -p "Google Client Secret: " client_secret
-    gcalcli --client-id "${client_id}" --client-secret "${client_secret}" list
-    exit 0
-  fi
+main() {
+  local command
+  local access_token_file
+  local client_secret_file
+
+  command=$1
+  access_token_file="${HOME}/.google/access_token.json"
+  client_secret_file="${HOME}/.google/client_secret.json"
+  db_file="${HOME}/.google/calendar-script.db"
+  script_file="${HOME}/.google/calendar-script.sh"
+
+  case $command in
+    --help|-h)
+      usage
+      ;;
+    --cron)
+      google_calendar_script_events "${db_file}" "${access_token_file}" "${script_file}"
+      ;;
+    --sync)
+      google_calendar_script_events "${db_file}" "${access_token_file}" "${script_file}"
+      ;;
+    --auth)
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      ;;
+  esac
 }

@@ -87,12 +87,6 @@ google_calendar_script_refresh_events() {
           done
     done
 
-
-
-
-
-
-
   rm -f "${cache_file}.0"
 }
 
