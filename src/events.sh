@@ -22,7 +22,7 @@ google_calendar_script_events() {
 
   #echo "E: $expiring_time $current_time $last_modified"
 
-  if [ "${expiring_time}" -gt "5" ]; then
+  if [ "${expiring_time}" -gt "1800" ]; then
     echo "Refreshing events..."
     google_calendar_script_refresh_events "${cache_file}" "${access_token_file}"
   fi

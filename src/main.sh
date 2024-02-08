@@ -44,9 +44,13 @@ main() {
       nano "${script_file}"
       ;;
     --info)
-      echo "==> Database: '${db_file}'"
-      cat "${db_file}"
-      echo "---"
+      echo "==[DATABASE: '${db_file}']=="
+      sed '/^#/d' "${db_file}"
+      echo "==[END]=="
+      echo
+      echo "==[SCRIPT: '${script_file}']=="
+      sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' "${script_file}"
+      echo "==[END]=="
       ;;
   esac
 }
