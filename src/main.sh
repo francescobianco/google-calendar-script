@@ -1,6 +1,8 @@
 
 module auth
 module events
+module date
+module test
 
 usage() {
   echo "Usage: google-calendar-script --sync"
@@ -48,25 +50,7 @@ main() {
       ;;
     --test)
       event_state=${2:-STARTED}
-      echo "Testing event on state ${event_state}"
-      test_db_file=$(mktemp)
-      case $event_state in
-        STARTED)
-          event_start=2020-01-01T00:00:00Z
-          event_end=2020-01-01T01:00:00Z
-          ;;
-        FINISHED)
-          event_start=2020-01-01T00:00:00Z
-          event_end=2020-01-01T01:00:00Z
-          ;;
-        *)
-          echo "Invalid state"
-          exit 1
-          ;;
-      esac
-      echo "EVENT ID STATE CALENDAR $event_start $event_end 5 10 Test Event" > "${test_db_file}"
-      google_calendar_script_events "${test_db_file}" "${script_file}"
-      rm -f "${test_db_file}"
+      google_calendar_script_test "${event_state}" "${script_file}"
       ;;
     *)
       usage

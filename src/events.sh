@@ -59,12 +59,8 @@ google_calendar_script_refresh_events() {
   sed '/^EVENT/d' "${cache_file}" > "${temp_file}"
   mv "${temp_file}" "${cache_file}"
 
-  today=$(date -u +"%Y-%m-%dT00:00:00Z")
-  if [ "$(uname)" == "Darwin" ]; then
-    tomorrow=$(date -u -j -v+1d -f "%Y-%m-%dT%H:%M:%SZ" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "+%Y-%m-%dT00:00:00Z")
-  else
-    tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
-  fi
+  today=$(google_calendar_today)
+  tomorrow=$(google_calendar_today "+1 day")
 
   events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
   calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
