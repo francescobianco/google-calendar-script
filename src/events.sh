@@ -140,7 +140,7 @@ google_calendar_script_parse_event() {
     fi
 
     if [ "$update_state" != "$event_state" ]; then
-      echo "Updating state of $event_id from $event_state to $update_state"
+      echo "Updating state of '${event_summary}' from $event_state to $update_state"
 
       temp_file="$(mktemp)"
       sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
