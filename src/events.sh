@@ -102,6 +102,8 @@ google_calendar_script_parse_event() {
   local event_reminder_1
   local event_reminder_2
   local event_summary
+  local current_time
+  local current_date
 
   cache_file=$1
   script_file=$2
@@ -121,6 +123,7 @@ google_calendar_script_parse_event() {
 
     update_state=${event_state}
     current_time=$(date +%s)
+    current_date=$(google_calendar_script_date "${current_time}")
     echo "S: $event_start E: $event_end R1: $event_reminder_1 R2: $event_reminder_2"
     start_time=$(google_calendar_script_date_timestamp "$event_start")
     end_time=$(google_calendar_script_date_timestamp "$event_end")
@@ -161,7 +164,7 @@ google_calendar_script_parse_event() {
       if [ "${update_state}" != "PENDING" ]; then
         export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
         export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
-        export GOOGLE_CALENDAR_EVENT_STATE_TIME="${update_state}"
+        export GOOGLE_CALENDAR_EVENT_STATE_TIME="${current_date}"
         export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
         export GOOGLE_CALENDAR_EVENT_START="${event_start}"
         export GOOGLE_CALENDAR_EVENT_END="${event_end}"
