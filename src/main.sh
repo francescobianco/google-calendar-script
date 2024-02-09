@@ -27,11 +27,11 @@ main() {
       ;;
     --cron)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
-      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
+      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}" 1800
       ;;
     --sync)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
-      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
+      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}" 1
       ;;
     --auth)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"

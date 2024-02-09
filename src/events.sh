@@ -10,6 +10,7 @@ google_calendar_script_events() {
   cache_file=$1
   script_file=$2
   access_token_file=$3
+  refresh_time=${4:-1800}
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
@@ -22,8 +23,8 @@ google_calendar_script_events() {
 
   #echo "E: $expiring_time $current_time $last_modified"
 
-  if [ "${expiring_time}" -gt "1800" ]; then
-    echo "Refreshing events..."
+  if [ "${expiring_time}" -gt "${refresh_time}" ]; then
+    echo "Syncing events..."
     google_calendar_script_refresh_events "${cache_file}" "${access_token_file}"
   fi
 
