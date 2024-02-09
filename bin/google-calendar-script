@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## BP010: Release metadata
 ## @build_type: bin
-## @build_date: 2024-02-08T15:42:42Z
+## @build_date: 2024-02-09T16:43:33Z
 set -e
 extern() {
   extern=$1
@@ -25,6 +25,8 @@ embed() {
 
 module auth
 module events
+module test
+module util
 
 usage() {
   echo "Usage: google-calendar-script --sync"
@@ -58,12 +60,6 @@ main() {
     --auth)
       google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
       ;;
-    --test)
-      event_state=$2
-      echo "Testing event on state ${event_state}"
-      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
-      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}"
-      ;;
     --edit)
       nano "${script_file}"
       ;;
@@ -75,6 +71,13 @@ main() {
       echo "==[SCRIPT: '${script_file}']=="
       sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' "${script_file}"
       echo "==[END]=="
+      ;;
+    --test)
+      event_state=${2:-STARTED}
+      google_calendar_script_test "${event_state}" "${script_file}"
+      ;;
+    *)
+      usage
       ;;
   esac
 }
@@ -92,7 +95,7 @@ google_calendar_script_auth() {
     google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
   fi
 
-  last_modified=$(stat -c %Y "${access_token_file}")
+  last_modified=$(google_calendar_script_file_timestamp "${access_token_file}")
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
 
@@ -191,7 +194,7 @@ google_calendar_script_events() {
 
   current_time=$(date +%s)
   if [ -f "${cache_file}" ]; then
-    last_modified=$(stat -c %Y "${cache_file}")
+    last_modified=$(google_calendar_script_file_timestamp "${cache_file}")
   else
     last_modified=0
     echo "## Cache file of google-calendar-script" > "${cache_file}"
@@ -209,7 +212,7 @@ google_calendar_script_events() {
 
   cp "${cache_file}" "${cache_file}.1"
   grep '^EVENT ' "${cache_file}.1" | while read -r line; do
-    echo "Processing $line"
+    #echo "Processing: $line"
     google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
   done
 
@@ -237,14 +240,10 @@ google_calendar_script_refresh_events() {
   sed '/^EVENT/d' "${cache_file}" > "${temp_file}"
   mv "${temp_file}" "${cache_file}"
 
-  today=$(date -u +"%Y-%m-%dT00:00:00Z")
-  if [ "$(uname)" == "Darwin" ]; then
-    tomorrow=$(date -u -j -v+1d -f "%Y-%m-%dT%H:%M:%SZ" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "+%Y-%m-%dT00:00:00Z")
-  else
-    tomorrow=$(date -u -d "tomorrow" +"%Y-%m-%dT00:00:00Z")
-  fi
+  time_min=$(google_calendar_script_date "-12 hours")
+  time_max=$(google_calendar_script_date "+12 hours")
 
-  events_query="timeMin=$today&timeMax=$tomorrow&singleEvents=true&orderBy=startTime"
+  events_query="timeMin=$time_min&timeMax=$time_max&singleEvents=true&orderBy=startTime"
   calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
 
    echo "$calendar_list" \
@@ -284,6 +283,8 @@ google_calendar_script_parse_event() {
   local event_reminder_1
   local event_reminder_2
   local event_summary
+  local current_time
+  local current_date
 
   cache_file=$1
   script_file=$2
@@ -291,34 +292,167 @@ google_calendar_script_parse_event() {
 
   event_id=$(echo "$event" | cut -d' ' -f2)
   event_state=$(echo "$event" | cut -d' ' -f3)
-  event_data=$(echo "$event" | cut -d' ' -f4-)
-  event_start=$(echo "$event_data" | cut -d' ' -f1)
-  event_end=$(echo "$event_data" | cut -d' ' -f2)
-  event_reminder_1=$(echo "$event_data" | cut -d' ' -f3)
-  event_reminder_2=$(echo "$event_data" | cut -d' ' -f4)
-  event_summary=$(echo "$event_data" | cut -d' ' -f5-)
 
-  update_state=${event_state}
-  current_time=$(date +%s)
-  end_time=$(date -d "$event_end" +"%s")
+  if [ "$event_state" != "ENDED" ]; then
+    event_start=$(echo "$event" | cut -d' ' -f5)
+    event_end=$(echo "$event" | cut -d' ' -f6)
+    event_reminder_1=$(echo "$event" | cut -d' ' -f7)
+    event_reminder_2=$(echo "$event" | cut -d' ' -f8)
+    event_summary=$(echo "$event" | cut -d' ' -f9-)
 
-  #echo "END $current_time $end_time"
+    echo -e "Processing: '$event_summary'"
 
-  if [ "$current_time" -gt "$end_time" ]; then
-    update_state="ENDED"
+    update_state=${event_state}
+    current_time=$(date +%s)
+    current_date=$(google_calendar_script_date "${current_time}")
+
+    #echo "S: $event_start E: $event_end R1: $event_reminder_1 R2: $event_reminder_2"
+    start_time=$(google_calendar_script_date_timestamp "$event_start")
+    end_time=$(google_calendar_script_date_timestamp "$event_end")
+    reminder_1_time=$((start_time - event_reminder_1 * 60))
+    reminder_2_time=$((start_time - event_reminder_2 * 60))
+
+    #echo "END $current_time $end_time"
+    #echo "START $current_time $start_time"
+    #echo "REMINDER1 $current_time $reminder_1_time"
+
+    if [ "$current_time" -lt "$start_time" ]; then
+      update_state="PENDING"
+    fi
+
+    if [ "$current_time" -gt "$reminder_2_time" ]; then
+      update_state="REMINDED1"
+    fi
+
+    if [ "$current_time" -gt "$reminder_1_time" ]; then
+      update_state="REMINDED2"
+    fi
+
+    if [ "$current_time" -gt "$start_time" ]; then
+      update_state="STARTED"
+    fi
+
+    if [ "$current_time" -gt "$end_time" ]; then
+      update_state="ENDED"
+    fi
+
+    if [ "$update_state" != "$event_state" ]; then
+      echo "Updating state of '${event_summary}' from $event_state to $update_state"
+
+      temp_file="$(mktemp)"
+      sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
+      mv "${temp_file}" "${cache_file}"
+
+      if [ "${update_state}" != "PENDING" ]; then
+        export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
+        export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
+        export GOOGLE_CALENDAR_EVENT_STATE_TIME="${current_date}"
+        export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
+        export GOOGLE_CALENDAR_EVENT_START="${event_start}"
+        export GOOGLE_CALENDAR_EVENT_END="${event_end}"
+        export GOOGLE_CALENDAR_EVENT_REMINDER_1="${event_reminder_1}"
+        export GOOGLE_CALENDAR_EVENT_REMINDER_2="${event_reminder_2}"
+        /bin/bash -x "${script_file}"
+      else
+        echo "Skipping event, it is still pending."
+      fi
+    fi
+
+    #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
   fi
+}
 
-  if [ "$update_state" != "$event_state" ]; then
-    #echo "Updating state of $event_id from $event_state to $update_state"
-    temp_file="$(mktemp)"
-    sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
-    mv "${temp_file}" "${cache_file}"
 
-    export GOOGLE_CALENDAR_EVENT_ID=$event_id
-    /bin/bash "${script_file}"
+google_calendar_script_test() {
+  local event_state
+  local script_file
+
+  event_state=${1:-STARTED}
+  script_file=${2:-"${HOME}/.google/calendar-script.sh"}
+  test_db_file=$(mktemp)
+
+  case $event_state in
+    PENDING)
+      event_start=$(google_calendar_script_date "+1 hour")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
+    REMINDED1)
+      event_start=$(google_calendar_script_date "+8 minutes")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
+    REMINDED2)
+      event_start=$(google_calendar_script_date "+4 minutes")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
+    STARTED)
+      event_start=$(google_calendar_script_date "-5 minutes")
+      event_end=$(google_calendar_script_date "+1 hour")
+      ;;
+    ENDED)
+      event_start=$(google_calendar_script_date "-2 hours")
+      event_end=$(google_calendar_script_date "-1 hour")
+      ;;
+    *)
+      echo "Invalid state '${event_state}'"
+      exit 1
+      ;;
+  esac
+
+  echo "Testing '${event_state}' state on fake event"
+  echo "EVENT ID UNKNOWN CALENDAR $event_start $event_end 5 10 Fake Calendar Event" > "${test_db_file}"
+  google_calendar_script_events "${test_db_file}" "${script_file}"
+  rm -f "${test_db_file}"
+}
+
+google_calendar_script_date() {
+  local offset
+  local sign
+  local format
+
+  offset=$1
+  sign=${offset:0:1}
+  format="%Y-%m-%dT%H:%M:%SZ"
+
+  if [ -z "${offset}" ]; then
+    date -u +"${format}"
+  elif [ "${sign}" == "+" ] || [ "${sign}" == "-" ]; then
+    if [ "$(uname)" == "Darwin" ]; then
+      offset=$(echo "$offset" | sed 's/.*\([+-][0-9]*\) *\([a-z]\).*/\1\2/g' | tr 'hms' 'HMS')
+      date -u -j -v"${offset}" +"${format}"
+    else
+      date -u -d "${offset}" +"${format}"
+    fi
+  else
+    if [ "$(uname)" == "Darwin" ]; then
+      date -r "${offset}" +"${format}"
+    else
+      date -d "@${offset}" +"${format}"
+    fi
   fi
+}
 
-  #echo "EVENT $event_id $event_state $event_start $event_end $event_reminder_1 $event_reminder_2 $event_summary"
+google_calendar_script_date_timestamp() {
+  local date
+
+  date=$1
+
+  if [ "$(uname)" == "Darwin" ]; then
+    date -j -f "%Y-%m-%dT%H:%M:%S" "${date:0:19}" +"%s"
+  else
+    date -d "$date" +"%s"
+  fi
+}
+
+google_calendar_script_file_timestamp() {
+  local file
+
+  file=$1
+
+  if [ "$(uname)" == "Darwin" ]; then
+    stat -f %m "${file}"
+  else
+    stat -c %Y "${file}"
+  fi
 }
 ## BP005: Execute the entrypoint
 main "$@"

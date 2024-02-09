@@ -119,7 +119,7 @@ google_calendar_script_parse_event() {
     event_reminder_2=$(echo "$event" | cut -d' ' -f8)
     event_summary=$(echo "$event" | cut -d' ' -f9-)
 
-    echo "Processing: '$event_summary'"
+    echo -e "Processing: '$event_summary'"
 
     update_state=${event_state}
     current_time=$(date +%s)
