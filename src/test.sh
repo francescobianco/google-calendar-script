@@ -13,6 +13,14 @@ google_calendar_script_test() {
       event_start=$(google_calendar_script_date "+1 hour")
       event_end=$(google_calendar_script_date "+2 hours")
       ;;
+    REMINDER1)
+      event_start=$(google_calendar_script_date "+8 minutes")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
+    REMINDER2)
+      event_start=$(google_calendar_script_date "+4 minutes")
+      event_end=$(google_calendar_script_date "+2 hours")
+      ;;
     STARTED)
       event_start=$(google_calendar_script_date "-5 minutes")
       event_end=$(google_calendar_script_date "+1 hour")
