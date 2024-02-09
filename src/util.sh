@@ -1,18 +1,28 @@
 
 google_calendar_script_date() {
   local offset
+  local sign
+  local format
 
   offset=$1
+  sign=${offset:0:1}
+  format="%Y-%m-%dT%H:%M:%SZ"
 
-  if [ -n "${offset}" ]; then
-      if [ "$(uname)" == "Darwin" ]; then
-        offset=$(echo "$offset" | sed 's/.*\([+-][0-9]*\) *\([a-z]\).*/\1\2/g' | tr 'hms' 'HMS')
-        date -u -j -v${offset} +"%Y-%m-%dT%H:%M:%SZ"
-      else
-        date -u -d "${offset}" +"%Y-%m-%dT%H:%M:%SZ"
-      fi
+  if [ -z "${offset}" ]; then
+    date -u +"${format}"
+  elif [ "${sign}" == "+" ] || [ "${sign}" == "-" ]; then
+    if [ "$(uname)" == "Darwin" ]; then
+      offset=$(echo "$offset" | sed 's/.*\([+-][0-9]*\) *\([a-z]\).*/\1\2/g' | tr 'hms' 'HMS')
+      date -u -j -v"${offset}" +"${format}"
+    else
+      date -u -d "${offset}" +"${format}"
+    fi
   else
-    date -u +"%Y-%m-%dT%H:%M:%SZ"
+    if [ "$(uname)" == "Darwin" ]; then
+      date -r "${offset}" +"${format}"
+    else
+      date -d "@${offset}" +"${format}"
+    fi
   fi
 }
 

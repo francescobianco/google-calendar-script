@@ -4,6 +4,8 @@ echo "GOOGLE_CALENDAR_EVENT_ID: ${GOOGLE_CALENDAR_EVENT_ID}"
 echo "GOOGLE_CALENDAR_EVENT_SUMMARY: ${GOOGLE_CALENDAR_EVENT_SUMMARY}"
 echo "GOOGLE_CALENDAR_EVENT_STATE: ${GOOGLE_CALENDAR_EVENT_STATE}"
 
+>> ${HOME}/.google/calendar-script.log
+
 sanitize_utf8() {
   local text
   local regex

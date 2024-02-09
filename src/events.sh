@@ -136,11 +136,11 @@ google_calendar_script_parse_event() {
     fi
 
     if [ "$current_time" -gt "$reminder_2_time" ]; then
-      update_state="REMINDER1"
+      update_state="REMINDED1"
     fi
 
     if [ "$current_time" -gt "$reminder_1_time" ]; then
-      update_state="REMINDER2"
+      update_state="REMINDED2"
     fi
 
     if [ "$current_time" -gt "$start_time" ]; then
@@ -161,6 +161,7 @@ google_calendar_script_parse_event() {
       if [ "${update_state}" != "PENDING" ]; then
         export GOOGLE_CALENDAR_EVENT_ID="${event_id}"
         export GOOGLE_CALENDAR_EVENT_STATE="${update_state}"
+        export GOOGLE_CALENDAR_EVENT_STATE_TIME="${update_state}"
         export GOOGLE_CALENDAR_EVENT_SUMMARY="${event_summary}"
         export GOOGLE_CALENDAR_EVENT_START="${event_start}"
         export GOOGLE_CALENDAR_EVENT_END="${event_end}"
