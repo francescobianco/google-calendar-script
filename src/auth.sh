@@ -16,7 +16,7 @@ google_calendar_script_auth() {
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
 
-  #echo "$expiring_time"
+  echo "$expiring_time"
 
   if [ "$expiring_time" -gt "1000" ]; then
     google_calendar_script_refresh_access_token "${access_token_file}" "${client_secret_file}"
@@ -94,6 +94,8 @@ google_calendar_script_refresh_access_token() {
      -d "refresh_token=$refresh_token" \
      -d "grant_type=refresh_token" \
      "$refresh_token_url" | sed 's#{#{\n  "refresh_token": "'"${refresh_token}"'",#')
+
+  echo "Access token refreshed: $access_token"
 
   echo "${access_token}" > "${access_token_file}"
 }

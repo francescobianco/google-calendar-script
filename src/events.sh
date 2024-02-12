@@ -4,7 +4,7 @@ google_calendar_script_events() {
   local access_token_file
   local script_file
   local current_time
-  local last_modified
+  local last_update
   local expiring_time
 
   cache_file=$1
@@ -13,19 +13,26 @@ google_calendar_script_events() {
   refresh_time=${4:-1800}
 
   current_time=$(date +%s)
-  if [ -f "${cache_file}" ]; then
-    last_modified=$(google_calendar_script_file_timestamp "${cache_file}")
-  else
-    last_modified=0
-    echo "## Cache file of google-calendar-script" > "${cache_file}"
-  fi
-  expiring_time=$((current_time - last_modified))
 
-  #echo "E: $expiring_time $current_time $last_modified"
+  if [ -f "${cache_file}" ]; then
+    last_update=$(sed -n 's/^META events_last_update \(.*\)$/\1/p' "${cache_file}")
+  else
+    last_update=0
+    echo "## Cache file of google-calendar-script" > "${cache_file}"
+    echo "META events_last_update $current_time" >> "${cache_file}"
+  fi
+
+  expiring_time=$((current_time - last_update))
+
+  echo "E: $expiring_time $refresh_time"
 
   if [ "${expiring_time}" -gt "${refresh_time}" ]; then
     echo "Syncing events..."
     google_calendar_script_refresh_events "${cache_file}" "${access_token_file}"
+
+    temp_file=$(mktemp)
+    sed 's/^META events_last_update \(.*\)$/META events_last_update '"$current_time"'/g' "${cache_file}" > "${temp_file}"
+    mv "${temp_file}" "${cache_file}"
   fi
 
   #cat "${cache_file}"
@@ -35,8 +42,7 @@ google_calendar_script_events() {
     #echo "Processing: $line"
     google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
   done
-
-  rm "${cache_file}.1"
+  rm -f "${cache_file}.1"
 }
 
 google_calendar_script_refresh_events() {
