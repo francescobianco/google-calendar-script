@@ -24,3 +24,6 @@ test-sync:
 
 test-agenda:
 	@cat ~/.today_agenda
+
+test-help:
+	@mush run -- --help
