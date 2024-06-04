@@ -22,6 +22,12 @@ test-date:
 test-sync:
 	@bash calendar-script.sh --sync
 
+test-cron:
+	@bash tests/cron-test.sh
+
+test-info:
+	@mush run -- --info
+
 test-agenda:
 	@cat ~/.today_agenda
 

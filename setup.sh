@@ -1,16 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
-cron_job="* * * * * google-calendar-script"
-crontab -l | grep -F "$cron_job" >/dev/null 2>&1
+PREFIX=${1:-${HOME}/.mush/bin}
+CRONJOB="* * * * * ${PREFIX}/google-calendar-script --cron"
 
-if [ $? -eq 0 ]; then
-  echo "The cron job already exists."
-else
-  # Add the cron job
-  (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-  echo "Cron job added successfully."
+if ! crontab -l 2>/dev/null | grep -F "$CRONJOB" >/dev/null 2>&1; then
+  (crontab -l 2>/dev/null; echo "$CRONJOB") | crontab -
 fi
-
-## Install crontab
-(crontab -l 2>/dev/null; echo "* * * * * google-calendar-script") | crontab -

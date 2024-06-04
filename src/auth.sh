@@ -2,21 +2,28 @@
 google_calendar_script_auth() {
   local access_token_file
   local client_secret_file
+  local mode
   local last_modified
   local current_time
 
   access_token_file=$1
   client_secret_file=$2
+  mode=$3
 
   if [ ! -f "${access_token_file}" ]; then
-    google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
+    if [ "${mode}" = "interactive" ]; then
+      google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
+    else
+      echo "Error: Authorization is required, type: google-calendar-script --auth"
+      exit 1
+    fi
   fi
 
   last_modified=$(google_calendar_script_file_timestamp "${access_token_file}")
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
 
-  echo "$expiring_time"
+  #echo "$expiring_time"
 
   if [ "$expiring_time" -gt "1000" ]; then
     google_calendar_script_refresh_access_token "${access_token_file}" "${client_secret_file}"

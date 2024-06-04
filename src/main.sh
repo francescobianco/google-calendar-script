@@ -20,17 +20,21 @@ main() {
   client_secret_file="${HOME}/.google/client_secret.json"
   db_file="${HOME}/.google/calendar-script.db"
   script_file="${HOME}/.google/calendar-script.sh"
+  log_file="${HOME}/.google/calendar-script.log"
 
   case $command in
     --help|-h)
       usage
       ;;
     --cron)
-      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
-      google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}" 1800
+      echo "==> $(date +"%Y-%m-%d %H:%M:%S")" >> "${log_file}"
+      google_calendar_script_auth \
+        "${access_token_file}" "${client_secret_file}" >> "${log_file}" 2>&1
+      google_calendar_script_events \
+        "${db_file}" "${script_file}" "${access_token_file}" 1800 >> "${log_file}" 2>&1
       ;;
     --sync)
-      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}" interactive
       google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}" 1
       ;;
     --auth)
@@ -40,13 +44,13 @@ main() {
       nano "${script_file}"
       ;;
     --info)
-      echo "==[DATABASE: '${db_file}']=="
+      echo "==> Events: '${db_file}'"
       sed '/^#/d' "${db_file}"
-      echo "==[END]=="
+      echo "[EOF]"
       echo
-      echo "==[SCRIPT: '${script_file}']=="
+      echo "==> Script: '${script_file}'"
       sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' "${script_file}"
-      echo "==[END]=="
+      echo "[EOF]"
       ;;
     --test)
       event_state=${2:-STARTED}

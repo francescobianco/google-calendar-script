@@ -24,7 +24,7 @@ google_calendar_script_events() {
 
   expiring_time=$((current_time - last_update))
 
-  echo "E: $expiring_time $refresh_time"
+  #echo "E: $expiring_time $refresh_time"
 
   if [ "${expiring_time}" -gt "${refresh_time}" ]; then
     echo "Syncing events..."
@@ -126,8 +126,6 @@ google_calendar_script_parse_event() {
     event_reminder_2=$(echo "$event" | cut -d' ' -f8)
     event_summary=$(echo "$event" | cut -d' ' -f9-)
 
-    echo -e "Processing: '$event_summary'"
-
     update_state=${event_state}
     current_time=$(date +%s)
     current_date=$(google_calendar_script_date "${current_time}")
@@ -141,6 +139,8 @@ google_calendar_script_parse_event() {
     #echo "END $current_time $end_time"
     #echo "START $current_time $start_time"
     #echo "REMINDER1 $current_time $reminder_1_time"
+
+    echo -e "Processing: ($event_state) '$event_summary'"
 
     if [ "$current_time" -lt "$start_time" ]; then
       update_state="PENDING"
@@ -163,7 +163,7 @@ google_calendar_script_parse_event() {
     fi
 
     if [ "$update_state" != "$event_state" ]; then
-      echo "Updating state of '${event_summary}' from $event_state to $update_state"
+      echo "- Updating state of '${event_summary}' from $event_state to $update_state"
 
       temp_file="$(mktemp)"
       sed 's/^EVENT '"${event_id}"' [A-Z]* /EVENT '"${event_id}"' '"${update_state}"' /g' "${cache_file}" > "${temp_file}"
@@ -180,7 +180,7 @@ google_calendar_script_parse_event() {
         export GOOGLE_CALENDAR_EVENT_REMINDER_2="${event_reminder_2}"
         /bin/bash -x "${script_file}"
       else
-        echo "Skipping event, it is still pending."
+        echo "- Skipping event, it is still pending."
       fi
     fi
 
