@@ -23,14 +23,35 @@ crontab -e
 ```
 
 ```crontab
-* * * * * /usr/bin/bash /opt/google-calendar-script/bin/google-calendar-script.sh --cron 
+* * * * * /usr/bin/bash /opt/google-calendar-script/bin/google-calendar-script --cron 
 ```
 
 Create a file named `calendar-script.sh` in `~/.google/` with instructions to execute when a calendar event is triggered.
 
 ## ⚙️ Configuration
 
-Customize the function `calendar_script` in `calendar-script.sh` to execute your custom scripts.
+Customize the file `~/.google/calendar-script.sh` to execute your custom scripts.
+
+The following environment variables are available:
+
+- `$GOOGLE_CALENDAR_EVENT_SUMMARY`: The event summary.
+- `$GOOGLE_CALENDAR_EVENT_ID`: The event ID.
+- `$GOOGLE_CALENDAR_EVENT_STATE`: The current state of the event.
+- `$GOOGLE_CALENDAR_EVENT_STATE_TIME`: The time when the event state was updated.
+- `$GOOGLE_CALENDAR_EVENT_START`: The start time of the event.
+- `$GOOGLE_CALENDAR_EVENT_END`: The end time of the event.
+- `$GOOGLE_CALENDAR_EVENT_REMINDER_1`: The first reminder time for the event.
+- `$GOOGLE_CALENDAR_EVENT_REMINDER_2`: The second reminder time for the event.
+
+The following event states are available for the `$GOOGLE_CALENDAR_EVENT_STATE` variable:
+
+- `PENDING`: The event is pending.
+- `REMINDED1`: The first reminder has been triggered.
+- `REMINDED2`: The second reminder has been triggered.
+- `STARTED`: The event has started.
+- `ENDED`: The event has ended.
+ 
+
 
 ## 🔑 Setting up OAuth2 Credentials
 
@@ -41,7 +62,7 @@ Customize the function `calendar_script` in `calendar-script.sh` to execute your
 5. Choose "Desktop app" as the application type.
 6. Name your OAuth 2.0 client and click "Create".
 7. Once created, download the JSON file containing your client secret.
-8. Rename the downloaded file to `client_secret.json` and place it in the `credentials` directory of the Google Calendar Script repository.
+8. Rename the downloaded file to `client_secret.json` and place it in the `~/.google/` directory.
 
 ## 📝 License
 
