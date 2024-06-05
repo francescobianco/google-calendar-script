@@ -156,7 +156,7 @@ google_calendar_script_parse_event() {
     #echo "START $current_time $start_time"
     #echo "REMINDER1 $current_time $reminder_1_time"
 
-    echo -e "> Processing: ($event_state) '$event_summary'"
+    echo -e "> Watching: ($event_state) '$event_summary'"
 
     if [ "$current_time" -lt "$start_time" ]; then
       update_state="PENDING"

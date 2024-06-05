@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## BP010: Release metadata
 ## @build_type: bin
-## @build_date: 2024-06-05T08:09:13Z
+## @build_date: 2024-06-05T08:35:56Z
 set -e
 extern() {
   extern=$1
@@ -79,6 +79,9 @@ main() {
     --test)
       event_state=${2:-STARTED}
       google_calendar_script_test "${event_state}" "${script_file}"
+      ;;
+    --logs)
+      tail -f "${log_file}"
       ;;
     *)
       usage
@@ -203,7 +206,7 @@ google_calendar_script_refresh_access_token() {
      -d "grant_type=refresh_token" \
      "$refresh_token_url" | sed 's#{#{\n  "refresh_token": "'"${refresh_token}"'",#')
 
-  echo "Access token refreshed: $access_token"
+  echo "Access token refreshed."
 
   echo "${access_token}" > "${access_token_file}"
 }
@@ -365,7 +368,7 @@ google_calendar_script_parse_event() {
     #echo "START $current_time $start_time"
     #echo "REMINDER1 $current_time $reminder_1_time"
 
-    echo -e "> Processing: ($event_state) '$event_summary'"
+    echo -e "> Watching: ($event_state) '$event_summary'"
 
     if [ "$current_time" -lt "$start_time" ]; then
       update_state="PENDING"

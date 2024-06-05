@@ -44,3 +44,6 @@ test-agenda:
 
 test-help:
 	@mush run -- --help
+
+test-logs:
+	@mush run -- --logs

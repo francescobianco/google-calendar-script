@@ -56,6 +56,9 @@ main() {
       event_state=${2:-STARTED}
       google_calendar_script_test "${event_state}" "${script_file}"
       ;;
+    --logs)
+      tail -f "${log_file}"
+      ;;
     *)
       usage
       ;;
