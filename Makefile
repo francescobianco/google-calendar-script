@@ -20,7 +20,7 @@ test-date:
 	@bash tests/date-test.sh
 
 test-sync:
-	@bash calendar-script.sh --sync
+	@mush run -- --sync
 
 test-cron:
 	@bash tests/cron-test.sh
