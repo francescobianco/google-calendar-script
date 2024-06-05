@@ -7,7 +7,7 @@ log_file="${HOME}/.google/calendar-script.log"
 
 #rm -f "${access_token_file}"
 #rm -f "${db_file}"
-rm -f "${log_file}"
+#rm -f "${log_file}"
 
 mush run -- --cron && true
 

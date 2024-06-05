@@ -27,6 +27,9 @@ main() {
       usage
       ;;
     --cron)
+      if [ -f "${log_file}" ] && [ "$(stat -c%s "$log_file")" -gt 300000 ]; then
+          tail -n 2000 "$log_file" > "${log_file}.0" && mv "${log_file}.0" "$log_file"
+      fi
       echo "==> $(date +"%Y-%m-%d %H:%M:%S")" >> "${log_file}"
       google_calendar_script_auth \
         "${access_token_file}" "${client_secret_file}" >> "${log_file}" 2>&1
