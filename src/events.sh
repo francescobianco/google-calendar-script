@@ -6,6 +6,7 @@ google_calendar_script_events() {
   local current_time
   local last_update
   local expiring_time
+  local events
 
   cache_file=$1
   script_file=$2
@@ -38,10 +39,17 @@ google_calendar_script_events() {
   #cat "${cache_file}"
 
   cp "${cache_file}" "${cache_file}.1"
-  grep '^EVENT ' "${cache_file}.1" | while read -r line; do
-    #echo "Processing: $line"
-    google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
-  done
+
+  events=$(grep '^EVENT ' "${cache_file}.1" || true)
+  if [ -n "${events}" ]; then
+    echo "${events}" | while read -r line; do
+      #echo "Processing: $line"
+      google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
+    done
+  else
+    echo "No events found."
+  fi
+
   rm -f "${cache_file}.1"
 }
 
@@ -55,6 +63,7 @@ google_calendar_script_refresh_events() {
   local tomorrow
   local events_query
   local temp_file
+  local error_message
 
   cache_file=$1
   access_token_file=$2
@@ -72,7 +81,14 @@ google_calendar_script_refresh_events() {
   events_query="timeMin=$time_min&timeMax=$time_max&singleEvents=true&orderBy=startTime"
   calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
 
-   echo "$calendar_list" \
+  error_message=$(echo "$calendar_list" | jq -r '.error.message // ""' && true)
+
+  if [ -n "$error_message" ]; then
+    echo "Error: $error_message"
+    exit 1
+  fi
+
+  echo "$calendar_list" \
     | jq -r '.items[] | "\(.id) \(.defaultReminders[0].minutes//0) \(.defaultReminders[1].minutes//0)"' \
     | while read -r calendar; do
         calendar_id=$(echo "$calendar" | cut -d' ' -f1)

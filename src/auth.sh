@@ -5,6 +5,7 @@ google_calendar_script_auth() {
   local mode
   local last_modified
   local current_time
+  local access_token_error
 
   access_token_file=$1
   client_secret_file=$2
@@ -22,6 +23,19 @@ google_calendar_script_auth() {
   last_modified=$(google_calendar_script_file_timestamp "${access_token_file}")
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
+
+  #cat "${access_token_file}"
+
+  access_token_error=$(jq -r '.error // ""' < "${access_token_file}" && true)
+  if [ -n "$access_token_error" ]; then
+    if [ "${mode}" = "interactive" ]; then
+      rm -f "${access_token_file}"
+      google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
+    else
+      echo "Error: Access token with $access_token_error, type: google-calendar-script --auth"
+      exit 1
+    fi
+  fi
 
   #echo "$expiring_time"
 
