@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## BP010: Release metadata
 ## @build_type: bin
-## @build_date: 2024-06-05T07:43:45Z
+## @build_date: 2024-06-05T08:09:13Z
 set -e
 extern() {
   extern=$1
@@ -92,6 +92,7 @@ google_calendar_script_auth() {
   local mode
   local last_modified
   local current_time
+  local access_token_error
 
   access_token_file=$1
   client_secret_file=$2
@@ -109,6 +110,19 @@ google_calendar_script_auth() {
   last_modified=$(google_calendar_script_file_timestamp "${access_token_file}")
   current_time=$(date +%s)
   expiring_time=$((current_time - last_modified))
+
+  #cat "${access_token_file}"
+
+  access_token_error=$(jq -r '.error // ""' < "${access_token_file}" && true)
+  if [ -n "$access_token_error" ]; then
+    if [ "${mode}" = "interactive" ]; then
+      rm -f "${access_token_file}"
+      google_calendar_script_get_access_token "${access_token_file}" "${client_secret_file}"
+    else
+      echo "Error: Access token with $access_token_error, type: google-calendar-script --auth"
+      exit 1
+    fi
+  fi
 
   #echo "$expiring_time"
 
@@ -220,7 +234,7 @@ google_calendar_script_events() {
 
   expiring_time=$((current_time - last_update))
 
-  echo "E: $expiring_time $refresh_time"
+  #echo "E: $expiring_time $refresh_time"
 
   if [ "${expiring_time}" -gt "${refresh_time}" ]; then
     echo "Syncing events..."
@@ -238,7 +252,7 @@ google_calendar_script_events() {
   events=$(grep '^EVENT ' "${cache_file}.1" || true)
   if [ -n "${events}" ]; then
     echo "${events}" | while read -r line; do
-      echo "Processing: $line"
+      #echo "Processing: $line"
       google_calendar_script_parse_event "$cache_file" "$script_file" "$line"
     done
   else
@@ -276,7 +290,7 @@ google_calendar_script_refresh_events() {
   events_query="timeMin=$time_min&timeMax=$time_max&singleEvents=true&orderBy=startTime"
   calendar_list=$(curl -s -X GET -H "Authorization: Bearer $access_token" "https://www.googleapis.com/calendar/v3/users/me/calendarList")
 
-  error_message=$(echo "$calendar_list" | jq -r '.error.message' && true)
+  error_message=$(echo "$calendar_list" | jq -r '.error.message // ""' && true)
 
   if [ -n "$error_message" ]; then
     echo "Error: $error_message"

@@ -1,4 +1,11 @@
 
+install:
+	@mush install --path .
+
+## ======
+## DevOps
+## ======
+
 push:
 	@git add .
 	@git commit -am "New release!" || true
@@ -6,6 +13,10 @@ push:
 
 pull:
 	@git pull
+
+## =====
+## Tests
+## =====
 
 test:
 	@bash calendar-script.sh
