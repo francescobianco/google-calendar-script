@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## BP010: Release metadata
 ## @build_type: bin
-## @build_date: 2024-06-05T13:27:48Z
+## @build_date: 2024-06-07T13:03:46Z
 set -e
 extern() {
   extern=$1
@@ -65,7 +65,7 @@ main() {
       google_calendar_script_events "${db_file}" "${script_file}" "${access_token_file}" 1
       ;;
     --auth)
-      google_calendar_script_auth "${access_token_file}" "${client_secret_file}"
+      google_calendar_script_auth "${access_token_file}" "${client_secret_file}" interactive
       ;;
     --edit)
       nano "${script_file}"
