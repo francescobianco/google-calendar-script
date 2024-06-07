@@ -116,7 +116,7 @@ google_calendar_script_refresh_access_token() {
      -d "grant_type=refresh_token" \
      "$refresh_token_url" | sed 's#{#{\n  "refresh_token": "'"${refresh_token}"'",#')
 
-  echo "Access token refreshed."
+  echo "Access token refreshed. ${access_token}"
 
   echo "${access_token}" > "${access_token_file}"
 }
